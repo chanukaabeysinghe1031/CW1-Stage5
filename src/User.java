@@ -63,4 +63,10 @@ class User {
         User user = new User(newCustomerName, newPassword, isAuthorized);
         return user;
     }
+
+    public static void displayUserAccount(User user){
+        System.out.println("User Name   :- " + user.getUserName());
+        System.out.println("Password    :- " + user.getPassword());
+        System.out.println("Authorized  :- " + user.isAuthorized());
+    }
 }

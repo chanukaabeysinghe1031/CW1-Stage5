@@ -17,6 +17,10 @@ public class BankAccount {
     public double getAutoDeposit() {return autoDeposit;}
     //------------------------------------------------------------------------------------------------------------------
 
+    //This is the set method for account balance------------------------------------------------------------------------
+    public void setAccountBalance(double accountBalance) {this.accountBalance = accountBalance;}
+    //------------------------------------------------------------------------------------------------------------------
+
     //to store all bankaccounts
     public static ArrayList<BankAccount> allBankAccounts=new ArrayList<BankAccount>();
 

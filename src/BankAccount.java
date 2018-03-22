@@ -1,12 +1,14 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class BankAccount {
+public class BankAccount implements Serializable {
     private int accountNumber;
     private double accountBalance;
     private String customerName;
     private String password;
     private double autoWithdrowal;
     private double autoDeposit;
+    private int user_ID;
 
     //These are the getter methods--------------------------------------------------------------------------------------
     public int getAccountNumber() {return accountNumber;}
@@ -15,20 +17,18 @@ public class BankAccount {
     public String getPassword() {return password;}
     public double getAutoWithdrowal() {return autoWithdrowal;}
     public double getAutoDeposit() {return autoDeposit;}
+    public int getUser_ID() { return user_ID; }
     //------------------------------------------------------------------------------------------------------------------
 
     //This is the set method for account balance------------------------------------------------------------------------
     public void setAccountBalance(double accountBalance) {this.accountBalance = accountBalance;}
     //------------------------------------------------------------------------------------------------------------------
 
-    //to store all bankaccounts
-    public static ArrayList<BankAccount> allBankAccounts=new ArrayList<BankAccount>();
-
     //create a constant to store the interest rate
     final private static double interestRate=3;
 
     public BankAccount(int bankAccountNumber, double bankAccountBalance,
-                       String customerName, String password,
+                       String customerName,int user_ID, String password,
                        double autoWithdrowal, double autoDeposit) {
         this.accountNumber = bankAccountNumber;
         this.accountBalance = bankAccountBalance;
@@ -36,6 +36,7 @@ public class BankAccount {
         this.password = password;
         this.autoWithdrowal = autoWithdrowal;
         this.autoDeposit = autoDeposit;
+        this.user_ID=user_ID;
     }
 
     //thhis method is to display account details
@@ -45,13 +46,15 @@ public class BankAccount {
                 + "Here is your bank account's details.");
         //display the details of the bank account
         System.out.println("    Customer name        :-  " + currentBankAccount.customerName);
+        System.out.println("    User ID              :-  " + currentBankAccount.user_ID);
         System.out.println("    Account number       :-  " + currentBankAccount.accountNumber);
         System.out.println("    Account balance      :-  " + currentBankAccount.accountBalance);
         System.out.println("---------------------------------------------------------");
     }
 
     //this method is to make a bank account
-    public static BankAccount enterAccountData(String loggedCustomerName,String loggedPassword) {
+    public static BankAccount enterAccountData(String loggedCustomerName,int user_ID,String loggedPassword
+            , ArrayList<BankAccount> allBankAccounts) {
         System.out.println("-----------------------------------------------------------");
         boolean isDuplicated = false;
         int accountNumber;
@@ -70,12 +73,12 @@ public class BankAccount {
                     if (allBankAccounts.get(i).accountNumber == accountNumber) {
                         isDuplicated = true;
                     }
-                    if (isDuplicated) {
-                        System.out.println("This account number has been already taken."
-                                + "Please enter another account number!!");
-                        System.out.print("Enter : ");
-                        accountNumber = UserInterface.validateAccountNumber();
-                    }
+                }
+                if (isDuplicated) {
+                    System.out.println("This account number has been already taken."
+                            + "Please enter another account number!!");
+                    System.out.print("Enter : ");
+                    accountNumber = UserInterface.validateAccountNumber();
                 }
             } while (isDuplicated);
 
@@ -97,7 +100,7 @@ public class BankAccount {
             autoDeposit = UserInterface.validateDouble();
             System.out.println("-----------------------------------------------------------");
             BankAccount bankAccount = new BankAccount(accountNumber, accountBalance,
-                    loggedCustomerName, loggedPassword, autoWithdrowal, autoDeposit);
+                    loggedCustomerName, user_ID, loggedPassword, autoWithdrowal, autoDeposit);
 
             return bankAccount;
 
@@ -106,7 +109,7 @@ public class BankAccount {
         }
     }
 
-    //this method is to compute the annual interest kthen display future fore cast
+    //this method is to compute the annual interest then display future fore cast
     public static void computeInterest(BankAccount bankAccount) {
         int numberOfYears;
         double autoWithdrawal = 0;

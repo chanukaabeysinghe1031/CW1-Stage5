@@ -2,20 +2,21 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-class UserInterface {
+class UserInterface implements Serializable {
 
-    static Scanner userInput=new Scanner(System.in);
-    static ArrayList<BankAccount> allBankAccounts=new ArrayList<>();//this array list is to store all thee bank accounts
-    static ArrayList<User> users=new ArrayList<>();//this array list is to store all the customer accounts
+    static Scanner userInput = new Scanner(System.in);
+    static ArrayList<BankAccount> allBankAccounts = new ArrayList<>();//this array list is to store all thee bank accounts
+    static ArrayList<User> users = new ArrayList<>();//this array list is to store all the customer accounts
     static String loggedUserName;
+    static int loggedUserID;
     static String loggedPassword;
     static boolean isLoggedUserAuthorized;
 
 
-    //this araylist is to store details of bank accounts of the logged unauthorized customer
+    //this array list is to store details of bank accounts of the logged unauthorized customer
     private static ArrayList<BankAccount> loggedBankAccounts = new ArrayList<BankAccount>();
 
-    public static void main(String[]args){
+    public static void main(String[] args) {
 
         //read from the file
         dataPersistency("read");
@@ -27,62 +28,61 @@ class UserInterface {
         logging in to an existing customer account
          */
 
-        dataPersistency("read");//to read from the file
-
         System.out.println("---------------------------------------------------------");
         System.out.println("Welcome to the Customer and Account Management System");
         System.out.println("---------------------------------------------------------");
 
         do {
-            String userName;
+            int userID;
             String password;
 
             //logging into the appilication
-            System.out.println("Please enter your user name");
-            userName = userInput.nextLine();
+            System.out.println("Please enter your user id");
+            System.out.print("Enter : ");
+            userID = validate();
             System.out.println("Please enter your password");
+            System.out.print("Enter : ");
             password = userInput.nextLine();
 
             boolean isUserExisting = false;
-            System.out.println("The number of user accounts is "+ users.size());
             for (int i = 0; i < users.size(); i++) {
-                if (userName.equals(users.get(i).getUserName()) && password.equals(users.get(i).getPassword())) {
+                if (userID == (users.get(i).getUser_ID()) && password.equals(users.get(i).getPassword())) {
                     isLoggedUserAuthorized = users.get(i).isAuthorized();
                     isUserExisting = true;
+                    loggedUserID = userID;
+                    loggedUserName = users.get(i).getUserName();
+                    loggedPassword = password;
                 }
             }
-            if(userName.equals("admin")&&password.equals("123")){
-                isUserExisting=true;
+            if (userID == 1 && password.equals("123")) {
+                isUserExisting = true;
             }
 
             if (isUserExisting) {
 
-                if (isLoggedUserAuthorized||userName.equals("admin")) {
+                if (userID == 1) {
                     displayAuthorizedMenu();
 
                 } else {
-                    loggedUserName=userName;
-                    loggedPassword=password;
-                    for(int i=0;i<allBankAccounts.size();i++){
-                        if(userName.equals(allBankAccounts.get(i).getCustomerName())){
+                    for (int i = 0; i < allBankAccounts.size(); i++) {
+                        if (loggedUserName.equals(allBankAccounts.get(i).getCustomerName())) {
                             loggedBankAccounts.add(allBankAccounts.get(i));
                         }
                     }
-                    System.out.println("The number Of bank accounts of the user is "+loggedBankAccounts.size());
                     displayCustomerMenu();
                 }
 
                 System.out.println("Do you want to exit from the application. If you want to exit please enter ,1");
                 exitNumber = validate();
                 if (exitNumber == 1) {
-                    continueToMainMenu=false;
+                    continueToMainMenu = false;
                 }
 
             } else {
                 System.out.println("Sorry ,invalid user name or password!!");
             }
 
-        }while(continueToMainMenu);
+        } while (continueToMainMenu);
 
         dataPersistency("write");
     }
@@ -90,6 +90,7 @@ class UserInterface {
     /*------------------------------------------------------------------------------------------------------------------
     THESE ARE THE USER INPUTS VALIDATION METHODS
     this method is to check whether a number entered by user is an integer*/
+
     public static int validate() {
         int validatedInput = 0;
 
@@ -108,6 +109,7 @@ class UserInterface {
         } while (validatedInput <= 0);
         return validatedInput;
     }
+
 
     //this method is to validate double inputs
     public static double validateDouble() {
@@ -163,8 +165,8 @@ class UserInterface {
     //End of validate methods-------------------------------------------------------------------------------------------
 
     //This menu will be displayed only for a authorization user after login
-    public static void displayAuthorizedMenu(){
-        boolean wantToContinue=true;
+    public static void displayAuthorizedMenu() {
+        boolean wantToContinue = true;
         BankAccount[] bankAccountsOfTheUser;
         do {
             int number;
@@ -173,17 +175,17 @@ class UserInterface {
             System.out.println("    1 :- To make a customer account");
             System.out.println("    2 :- To make a bank account");
             System.out.println("    3 :- To log out from the current user account");
+            System.out.println("---------------------------------------------------------");
             System.out.print("Enter :- ");
             number = validate();
-            System.out.println("---------------------------------------------------------");
 
             switch (number) {
 
                 //to make customer account then make bank account for it
                 case 1:
-                    User user=null;
+                    User user = null;
                     bankAccountsOfTheUser = new BankAccount[10];
-                    boolean moreBankAccounts=true;
+                    boolean moreBankAccounts = true;
                     user = User.makeUserAccount(users);
                     //add the user to the array list of users
                     users.add(user);
@@ -194,8 +196,9 @@ class UserInterface {
                     //to make bank accounts
                     //Only unauthorized persons will  be able to have bank accounts.
                     //But their bank accounts must be made only by authorized persons.
-                    if(!user.isAuthorized()) {
-                        BankAccount firstBankAccount = BankAccount.enterAccountData(user.getUserName(), user.getPassword());
+                    if (!user.isAuthorized()) {
+                        BankAccount firstBankAccount = BankAccount.enterAccountData(user.getUserName(), user.getUser_ID()
+                                , user.getPassword(), allBankAccounts);
                         //add the new bank account to the array list of all bank accounts
                         allBankAccounts.add(firstBankAccount);
                         //add the new bank account to the array  of logged bank accounts
@@ -203,16 +206,18 @@ class UserInterface {
                         //display second account details
                         BankAccount.displayAccount(firstBankAccount);
 
+                        int indexOfBankAccount = 0;
                         do {
-                            int indexOfBankAccount = 1;
-                            if (bankAccountsOfTheUser.length > 10) {
+                            //if last bank account is in the index of 9, user can't make more bank accounts
+                            if (indexOfBankAccount == 9) {
                                 System.out.println("Sorry you can't add bank accounts more than 10");
                                 break;
                             }
 
                             System.out.println("If you don't want to make bank accounts"
                                     + "please enter 0 as the bank account number.");
-                            BankAccount bankAccount = BankAccount.enterAccountData(user.getUserName(), user.getPassword());
+                            BankAccount bankAccount = BankAccount.enterAccountData(user.getUserName(),
+                                    user.getUser_ID(), user.getPassword(), allBankAccounts);
 
                             if (bankAccount == null) {
                                 moreBankAccounts = false;
@@ -221,7 +226,7 @@ class UserInterface {
                                 //add the new bank account to the array list of all bank accounts
                                 allBankAccounts.add(bankAccount);
                                 //add the new bank account to the array  of logged bank accounts
-                                bankAccountsOfTheUser[indexOfBankAccount] = bankAccount;
+                                bankAccountsOfTheUser[indexOfBankAccount + 1] = bankAccount;
                                 //display second account details
                                 BankAccount.displayAccount(bankAccount);
                                 indexOfBankAccount++;
@@ -233,61 +238,68 @@ class UserInterface {
                 //to make bank accounts for existing customer account
                 case 2:
 
-                    String userName;
+                    String userName = null;
+                    int user_ID;
                     String password;
-                    boolean isUserExisting=false;
+                    boolean isUserExisting = false;
                     bankAccountsOfTheUser = new BankAccount[10];
 
-                    System.out.println("Please enter the customer name you want to add bank accounts");
-                    System.out.print("Enter");
-                    userName=userInput.nextLine();
+                    System.out.println("Please enter the user_ID you want to add bank accounts");
+                    System.out.print("Enter : ");
+                    user_ID = validate();
                     System.out.println("Please enter the password");
-                    System.out.print("Enter");
-                    password=userInput.nextLine();
+                    System.out.print("Enter : ");
+                    password = userInput.nextLine();
 
-                    for(int i=0;i<users.size();i++){
-                        if(userName.equals(users.get(i).getUserName())&&password.equals(users.get(i).getPassword())){
-                            isUserExisting=true;
+                    for (int i = 0; i < users.size(); i++) {
+                        if ((user_ID == users.get(i).getUser_ID()) && (password.equals(users.get(i).getPassword()))) {
+                            isUserExisting = true;
+                            userName = users.get(i).getUserName();
                         }
                     }
 
-                    if(isUserExisting){
+                    if (isUserExisting) {
 
-                        int indexOfBankAccount=0;
+                        //the last index in array after all the bank accounts of the user , are put to the array
+                        int indexOfLastBankAccount = 0;
+                        //the last index in allBankAccounts after a bank account added to the array
+                        int index = 1;
                         //get the all existing bank accounts of the user to the array
-                        for(;indexOfBankAccount<10;indexOfBankAccount++){
-                            for(int j=0;j<allBankAccounts.size();j++) {
-                                if (allBankAccounts.get(indexOfBankAccount).getCustomerName().equals(userName)) {
-                                    bankAccountsOfTheUser[indexOfBankAccount]=allBankAccounts.get(j);
-                                }
+                        int counter = 0;
+                        for (;indexOfLastBankAccount<10;indexOfLastBankAccount++) {
+                            for(;index<allBankAccounts.size();index++){
+                                if(allBankAccounts.get(index).getUser_ID()==user_ID)
+                                bankAccountsOfTheUser[indexOfLastBankAccount]=allBankAccounts.get(index);
+                                break;
                             }
                         }
 
+
                         //if there're no 10 bank accounts,user can make bank accounts
-                        if(bankAccountsOfTheUser.length<10){
-                            boolean makeMoreBankAccounts=true;
-                            do{
-                                if (bankAccountsOfTheUser.length > 10) {
+                        if (indexOfLastBankAccount<10) {
+                            boolean makeMoreBankAccounts = true;
+                            do {
+                                if (indexOfLastBankAccount==10) {
                                     System.out.println("Sorry you can't add bank accounts more than 10");
                                     break;
                                 }
 
                                 System.out.println("If you don't want to make bank accounts"
                                         + "please enter 0 as the bank account number.");
-                                BankAccount bankAccount = BankAccount.enterAccountData(userName, password);
+                                BankAccount bankAccount = BankAccount.enterAccountData(userName, user_ID, password, allBankAccounts);
 
                                 if (bankAccount == null) {
                                     makeMoreBankAccounts = false;
                                 } else {
+                                    indexOfLastBankAccount++;
                                     //add the new bank account to the array list of all bank accounts
                                     allBankAccounts.add(bankAccount);
                                     //add the new bank account to the array  of logged bank accounts
-                                    bankAccountsOfTheUser[indexOfBankAccount+1] = bankAccount;
+                                    bankAccountsOfTheUser[indexOfLastBankAccount] = bankAccount;
                                     //display second account details
                                     BankAccount.displayAccount(bankAccount);
-                                    indexOfBankAccount++;
                                 }
-                            }while(makeMoreBankAccounts);
+                            } while (makeMoreBankAccounts);
                         }
                     }
                     break;
@@ -296,26 +308,26 @@ class UserInterface {
                     System.out.println("---------------------------------------------------------");
                     System.out.println("Thank You");
                     System.out.println("---------------------------------------------------------");
-                    wantToContinue=false;
+                    wantToContinue = false;
                     break;
             }
-        }while(wantToContinue);
+        } while (wantToContinue);
     }
 
     //This method will be displayed only for a customer after login
     public static void displayCustomerMenu() {
         int number;
-        boolean wantToContinue=true;
+        boolean wantToContinue = true;
         do {
             System.out.println("---------------------------------------------------------");
             System.out.println("Please enter");
             System.out.println("    1 :- To check the account balance");
             System.out.println("    2 :- To do a transfer");
             System.out.println("    3 :- To display the forecast");
-            System.out.println("    3 :- To log out");
+            System.out.println("    4 :- To log out");
+            System.out.println("---------------------------------------------------------");
             System.out.print("Enter :- ");
             number = validate();
-            System.out.println("---------------------------------------------------------");
 
             switch (number) {
 
@@ -369,11 +381,11 @@ class UserInterface {
                     System.out.println("---------------------------------------------------------");
                     System.out.println("Thank You");
                     System.out.println("---------------------------------------------------------");
-                    wantToContinue=false;
+                    wantToContinue = false;
                     break;
             }
 
-        }while(wantToContinue);
+        } while (wantToContinue);
     }
 
     public static void transferCurrency() {
@@ -412,7 +424,7 @@ class UserInterface {
 
                 System.out.println("Please notice that tour balance "
                         + "will be reduce than 10. ");
-                sendBankAccount.setAccountBalance(sendBankAccount.getAccountBalance()- transferCurrency);
+                sendBankAccount.setAccountBalance(sendBankAccount.getAccountBalance() - transferCurrency);
                 receiveBankAccount.setAccountBalance(receiveBankAccount.getAccountBalance() + transferCurrency);
                 System.out.println("Your new balance of the bank account "
                         + transferFromAccountNumber + " is " + sendBankAccount.getAccountBalance());
@@ -422,7 +434,7 @@ class UserInterface {
             } else if (!(sendBankAccount.getAccountBalance() - transferCurrency < 10
                     || receiveBankAccount.getAccountBalance() + transferCurrency > 100000)) {
 
-                sendBankAccount.setAccountBalance(sendBankAccount.getAccountBalance()- transferCurrency);
+                sendBankAccount.setAccountBalance(sendBankAccount.getAccountBalance() - transferCurrency);
                 receiveBankAccount.setAccountBalance(receiveBankAccount.getAccountBalance() + transferCurrency);
                 System.out.println("Your new balance of the bank account "
                         + transferFromAccountNumber + " is " + sendBankAccount.getAccountBalance());
@@ -440,38 +452,43 @@ class UserInterface {
 
         if (whatToDo.equals("read")) {
             //Read  bankAccounts objects from the files
+            FileInputStream fis1;
+            ObjectInputStream input;
             try {
-                FileInputStream fis1 = new FileInputStream("BankAccounts.dat");
-                ObjectInputStream input = new ObjectInputStream(fis1);
+                fis1 = new FileInputStream("BankAccounts.dat");
+                input = new ObjectInputStream(fis1);
                 allBankAccounts = (ArrayList<BankAccount>) input.readObject();
                 System.out.println("Successfully transferred all bank accounts from the file.");
                 input.close();
             } catch (FileNotFoundException e2) {
-                System.out.println("Couldn't find the file.");
+                System.out.println("Error 1.");
             } catch (IOException ex) {
-                System.out.println("Sorry error was occurred while reading the file");
+                System.out.println("Error 2");
             } catch (ClassNotFoundException ex) {
-                System.out.println("Sorry error was occurred while reading the file");
+                System.out.println("Error 3");
             }
 
             //read users objects from the file
+            FileInputStream fis2;
+            ObjectInputStream input2;
             try {
-                FileInputStream fis1 = new FileInputStream("CustomerAccounts.dat");
-                ObjectInputStream input = new ObjectInputStream(fis1);
-                allBankAccounts = (ArrayList<BankAccount>) input.readObject();
+                fis2 = new FileInputStream("Customers.dat");
+                input2 = new ObjectInputStream(fis2);
+                users = (ArrayList<User>) input2.readObject();
                 System.out.println("Successfully transferred all customer accounts  from the file.");
-                input.close();
+                input2.close();
             } catch (FileNotFoundException e2) {
-                System.out.println("Couldn't find the file.");
+                System.out.println("Error 1");
             } catch (IOException ex) {
-                System.out.println("Sorry error was occurred while reading the file");
+                System.out.println("Error 2");
             } catch (ClassNotFoundException ex) {
-                System.out.println("Sorry error was occurred while reading the file");
+                System.out.println("Error 3");
             }
+
         } else if (whatToDo.equals("write")) {
 
             //write bank account details into text file
-            FileOutputStream s3 = null;
+            FileOutputStream s3;
             PrintWriter outputStream3 = null;
 
             try {
@@ -488,47 +505,60 @@ class UserInterface {
                     outputStream3.println("_________________________________________________________");
 
                 }
+                System.out.println("Successfully written bank account details into the file.");
             } catch (FileNotFoundException e) {
                 System.out.println("Sorry the file couldn't be found.");
             }
             outputStream3.close();
-            System.out.println("Successfully saved to the file.");
+
 
             //write user accounts details to a text file
-            try{
-                FileOutputStream fos=new FileOutputStream("userAccountDetails.txt");
-                PrintWriter pw=new PrintWriter(fos);
-                for(int i=0;i<users.size();i++){
+            FileOutputStream fos;
+            PrintWriter pw = null;
+            try {
+                fos = new FileOutputStream("userAccountDetails.txt");
+                pw = new PrintWriter(fos);
+                for (int i = 0; i < users.size(); i++) {
                     pw.println("_______________________________________________________________________");
+                    pw.println("User ID         :- " + users.get(i).getUser_ID());
                     pw.println("User Name       :- " + users.get(i).getUserName());
                     pw.println("Password        :- " + users.get(i).getPassword());
                     pw.println("Authorized      :- " + users.get(i).isAuthorized());
                     pw.println("_______________________________________________________________________");
                 }
-            }catch(FileNotFoundException e){
+                System.out.println("Successfully written user account details into the file.");
+            } catch (FileNotFoundException e) {
                 System.out.println("Error occurred while writing the file.");
             }
+            pw.close();
+
+            FileOutputStream s;
+            ObjectOutputStream output;
+
             try {
-                FileOutputStream s = new FileOutputStream("BankAccounts.dat");
-                ObjectOutputStream output = new ObjectOutputStream(s);
+                s = new FileOutputStream("BankAccounts.dat");
+                output = new ObjectOutputStream(s);
                 output.writeObject(allBankAccounts);
+                System.out.println("Successful written into the Bank Accounts arraylist into the file.");
                 output.close();
             } catch (FileNotFoundException ex) {
-                System.out.println("Sorry File couldn't be found.");
+                System.out.println("Error 1");
             } catch (IOException ex) {
-                System.out.println("Sorry saving is unsuccessful.");
+                System.out.println("Error 2");
             }
 
-            //write all the user accounts to the files
-            try{
-                FileOutputStream s2=new FileOutputStream("CustomerAccounts.dat");
-                ObjectOutputStream oos=new ObjectOutputStream(s2);
-                oos.writeObject(users);
-                oos.close();
-            }catch (FileNotFoundException e){
-                System.out.println("Sorry the file couldn't be find.");
-            }catch (IOException ex){
-                System.out.println("Sorry, error");
+            FileOutputStream fos2;
+            ObjectOutputStream oos2;
+            try {
+                fos2 = new FileOutputStream("Customers.dat");
+                oos2 = new ObjectOutputStream(fos2);
+                oos2.writeObject(users);
+                System.out.println("Successfully written all the customers' array list into the file.");
+                oos2.close();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }

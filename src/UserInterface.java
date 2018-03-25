@@ -232,6 +232,8 @@ class UserInterface implements Serializable {
                                 indexOfBankAccount++;
                             }
                         } while (moreBankAccounts);
+
+                        BankAccount.computeInterest2(bankAccountsOfTheUser);
                     }
                     break;
 
@@ -261,49 +263,46 @@ class UserInterface implements Serializable {
                     if (isUserExisting) {
 
                         //the last index in array after all the bank accounts of the user , are put to the array
-                        int indexOfLastBankAccount = 0;
+                        int indexOfLastBankAccount = -1;
                         //the last index in allBankAccounts after a bank account added to the array
-                        int index = 1;
-                        //get the all existing bank accounts of the user to the array
-                        int counter = 0;
-                        for (;indexOfLastBankAccount<10;indexOfLastBankAccount++) {
-                            for(;index<allBankAccounts.size();index++){
-                                if(allBankAccounts.get(index).getUser_ID()==user_ID)
-                                bankAccountsOfTheUser[indexOfLastBankAccount]=allBankAccounts.get(index);
-                                break;
+                        int index = 0;
+
+                        for (; index < allBankAccounts.size(); index++) {
+                            if (user_ID == allBankAccounts.get(index).getUser_ID()) {
+                                indexOfLastBankAccount++;
+                                bankAccountsOfTheUser[indexOfLastBankAccount] = allBankAccounts.get(index);
                             }
                         }
 
-
                         //if there're no 10 bank accounts,user can make bank accounts
-                        if (indexOfLastBankAccount<10) {
-                            boolean makeMoreBankAccounts = true;
-                            do {
-                                if (indexOfLastBankAccount==10) {
-                                    System.out.println("Sorry you can't add bank accounts more than 10");
-                                    break;
-                                }
 
-                                System.out.println("If you don't want to make bank accounts"
-                                        + "please enter 0 as the bank account number.");
-                                BankAccount bankAccount = BankAccount.enterAccountData(userName, user_ID, password, allBankAccounts);
+                        boolean makeMoreBankAccounts=true;
+                        do {
+                            if (indexOfLastBankAccount == 9) {
+                                System.out.println("Sorry you can't add bank accounts more than 10");
+                                break;
+                            }
 
-                                if (bankAccount == null) {
-                                    makeMoreBankAccounts = false;
-                                } else {
-                                    indexOfLastBankAccount++;
-                                    //add the new bank account to the array list of all bank accounts
-                                    allBankAccounts.add(bankAccount);
-                                    //add the new bank account to the array  of logged bank accounts
-                                    bankAccountsOfTheUser[indexOfLastBankAccount] = bankAccount;
-                                    //display second account details
-                                    BankAccount.displayAccount(bankAccount);
-                                }
-                            } while (makeMoreBankAccounts);
-                        }
+                            System.out.println("If you don't want to make bank accounts"
+                                    + "please enter 0 as the bank account number.");
+                            BankAccount bankAccount = BankAccount.enterAccountData(userName, user_ID, password, allBankAccounts);
+
+                            if (bankAccount == null) {
+                                makeMoreBankAccounts = false;
+                            } else {
+                                indexOfLastBankAccount++;
+                                //add the new bank account to the array list of all bank accounts
+                                allBankAccounts.add(bankAccount);
+                                //add the new bank account to the array  of logged bank accounts
+                                bankAccountsOfTheUser[indexOfLastBankAccount] = bankAccount;
+                                //display second account details
+                                BankAccount.displayAccount(bankAccount);
+                            }
+                        } while (makeMoreBankAccounts);
+
+                        BankAccount.computeInterest2(bankAccountsOfTheUser);
+
                     }
-
-                    BankAccount.computeInterest2(bankAccountsOfTheUser);
                     break;
 
                 case 3:

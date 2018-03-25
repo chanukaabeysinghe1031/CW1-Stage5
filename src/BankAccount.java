@@ -124,6 +124,12 @@ public class BankAccount implements Serializable {
         System.out.print("Enter : ");
         numberOfYears = UserInterface.validate();
 
+        while(numberOfYears>40){
+            System.out.println("Please enter a number of years within the range of from 1 to 40.");
+            System.out.print("Enter : ");
+            numberOfYears=UserInterface.validate();
+        }
+
         //get the neceassary informaion to calculate forecast from the object
         autoDeposit = bankAccount.autoDeposit;
         autoWithdrawal = bankAccount.autoWithdrowal;
@@ -150,6 +156,68 @@ public class BankAccount implements Serializable {
                     + "           " + futureBalance + "          ");
             previousBalance = futureBalance;
             System.out.println("____________________________________________________");
+        }
+        System.out.println("-----------------------------------------------------------");
+    }
+
+    //This method is to display the farecast of all the bank accounts which user have made
+    public static void computeInterest2(BankAccount[] bankAccountsOfTheUser) {
+        int numberOfYears;
+        double autoWithdrawal = 0;
+        double autoDeposit = 0;
+        double interestRate = 0;
+        double currentBalance = 0;
+        int previousBalance = 0;
+        int futureBalance = 0;
+
+        //get the number of years
+        System.out.println("Please enter after how many years do you want to see the forecast?");
+        System.out.print("Enter : ");
+        numberOfYears = UserInterface.validate();
+
+        while (numberOfYears > 40) {
+            System.out.println("Please enter a number of years within the range of from 1 to 40.");
+            System.out.print("Enter : ");
+            numberOfYears = UserInterface.validate();
+        }
+
+        //To display forecast of the all tha bank accounts of the user
+        for (int i = 0; i < 10; i++) {
+            //Check first that bank account is null
+            if(bankAccountsOfTheUser[i]!=null) {
+                System.out.println("==================================================================================");
+                System.out.println("====================="+bankAccountsOfTheUser[i].getAccountNumber()+"=====================================");
+                System.out.println("==================================================================================");
+                //get the neceassary informaion to calculate forecast from the object
+                autoDeposit = bankAccountsOfTheUser[i].autoDeposit;
+                autoWithdrawal = bankAccountsOfTheUser[i].autoWithdrowal;
+                currentBalance = bankAccountsOfTheUser[i].accountBalance;
+
+                System.out.println("-----------------------------------------------------------");
+                System.out.println("The current balance is " + currentBalance);
+                System.out.println("Year     Begining Balance    Ending balance");
+                previousBalance = (int) currentBalance;
+
+                //Print balances at begin and end of each year
+                for (int yearCounter = 0; yearCounter < numberOfYears; yearCounter++) {
+                    for (int monthCounter = 1; monthCounter <= 12; monthCounter++) {
+                        double function = previousBalance + (currentBalance * interestRate / 100 / 12)
+                                + autoDeposit - autoWithdrawal;
+                        if ((function <= 100000) && (function >= 0)) {
+                            futureBalance = (int) function;
+                        } else if (function > 100000) {
+                            futureBalance = 100000;
+                        } else if (function < 0) {
+                            futureBalance = 0;
+                        }
+                    }
+                    System.out.println("" + (yearCounter + 1) + "        " + previousBalance
+                            + "           " + futureBalance + "          ");
+                    previousBalance = futureBalance;
+                    System.out.println("____________________________________________________");
+                }
+
+            }
         }
         System.out.println("-----------------------------------------------------------");
     }
